@@ -10,8 +10,10 @@ public class Draven : Character
 
     IEnumerator leftAxeCoroutine;
     IEnumerator rightAxeCoroutine;
+    public bool isRightAxeRotating { get; private set; }
+    public bool isLeftAxeRotating { get; private set; }
 
-    #endregion
+#endregion
 
     #region public references
 
@@ -35,8 +37,6 @@ public class Draven : Character
     IEnumerator changeSpeedCoroutine;
     bool isChangeSpeedCoroutineRunning;
     bool isAbilityWActive;
-    bool isRightAxeRotating;
-    bool isLeftAxeRotating;
 
     #endregion
 

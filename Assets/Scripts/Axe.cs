@@ -154,6 +154,9 @@ public class Axe : MonoBehaviour
             endPosition = dravenScript.gameObject.transform.position;
         }
 
+        middlePosition = Vector3.Lerp(transform.position, endPosition, 0.5f);
+        middlePosition += new Vector3(0, 2, 0);
+
         if (transform.name == "RightAxe")
         {
             abilityQIndicatorRight.transform.parent = null;
@@ -169,10 +172,6 @@ public class Axe : MonoBehaviour
             abilityQIndicatorLeft.SetActive(true);
         }
 
-        
-
-        middlePosition = Vector3.Lerp(transform.position, endPosition, 0.5f);
-        middlePosition += new Vector3(0, 2, 0);
         lerpAxeCoroutine = LerpAxe();
         StartCoroutine(lerpAxeCoroutine);
     }
@@ -206,11 +205,21 @@ public class Axe : MonoBehaviour
 
         if (transform.name == "RightAxe")
         {
+            if (!dravenScript.isLeftAxeRotating)
+            {
+                dravenScript.isRightLastAttack = false;
+            }
+
             abilityQIndicatorRight.transform.SetParent(dravenScript.gameObject.transform);
             abilityQIndicatorRight.SetActive(false);
         }
         else
         {
+            if (!dravenScript.isRightAxeRotating)
+            {
+                dravenScript.isRightLastAttack = true;
+            }
+
             abilityQIndicatorLeft.transform.SetParent(dravenScript.gameObject.transform);
             abilityQIndicatorLeft.SetActive(false);
         }

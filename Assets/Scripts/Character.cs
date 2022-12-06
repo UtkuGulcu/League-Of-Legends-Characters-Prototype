@@ -8,9 +8,8 @@ public class Character : MonoBehaviour
 
     #region protected variables
 
-    protected bool isAttacking;
-    protected bool isOnEnemy;
-    protected bool isRightLastAttack;
+    bool isAttacking;
+    bool isOnEnemy;
     protected bool isAbilityQOnCooldown;
     protected bool isAbilityWOnCooldown;
     protected WaitForSeconds waitAttack;
@@ -38,6 +37,8 @@ public class Character : MonoBehaviour
     [SerializeField] protected float abilityWCooldown;
     [SerializeField] protected float abilityECooldown;
     [SerializeField] protected float abilityRCooldown;
+
+    [HideInInspector] public bool isRightLastAttack;
 
     #endregion
 
