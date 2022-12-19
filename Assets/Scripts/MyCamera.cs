@@ -20,16 +20,13 @@ public class MyCamera : MonoBehaviour
     #region private variables
 
     bool isLocked;
-    //Vector3 mousePosition;
     Vector3 cameraOffset;
-    //float[] mouseInfo;
-    MouseInfo mouseInfo;
 
     #endregion
 
     #region private references
 
-
+    MouseInfo mouseInfo;
 
     #endregion
 
@@ -101,16 +98,7 @@ public class MyCamera : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, 999f))
         {
             mouseInfo.mousePosition = hit.point;
-
-            if (hit.transform.CompareTag("Enemy"))
-            {
-                mouseInfo.isOnEnemy = true;
-            }
-            else
-            {
-                mouseInfo.isOnEnemy = false;
-            }
-
+            mouseInfo.isOnEnemy = hit.transform.CompareTag("Enemy");
             mouseInfo.hitObject = hit.transform.gameObject;
         }
 

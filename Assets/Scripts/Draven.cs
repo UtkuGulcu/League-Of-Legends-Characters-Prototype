@@ -8,8 +8,6 @@ public class Draven : Character
 
     #region public variables
 
-    IEnumerator leftAxeCoroutine;
-    IEnumerator rightAxeCoroutine;
     public bool isRightAxeRotating { get; private set; }
     public bool isLeftAxeRotating { get; private set; }
 
@@ -21,6 +19,8 @@ public class Draven : Character
     [SerializeField] GameObject leftAxe;
     public Transform rightHandTransform;
     public Transform leftHandTransform;
+    public GameObject abilityEContainer;
+    public DravenRContainer abilityRContainerScript;
 
     #endregion
 
@@ -28,6 +28,8 @@ public class Draven : Character
 
     WaitForSeconds waitSpeed;
     WaitForSeconds waitAbilityQ;
+    WaitForSeconds waitAbilityE;
+    WaitForSeconds waitAbilityR;
     float extraMovementSpeed;
     float extraAttackSpeed;
     float abilityWActivationTime;
@@ -35,8 +37,11 @@ public class Draven : Character
     float abilityWLerpStart;
     float abilityWLerpEnd;
     IEnumerator changeSpeedCoroutine;
+    IEnumerator leftAxeCoroutine;
+    IEnumerator rightAxeCoroutine;
     bool isChangeSpeedCoroutineRunning;
     bool isAbilityWActive;
+    Vector3 abilityRDirection;
 
     #endregion
 
@@ -52,6 +57,7 @@ public class Draven : Character
         base.Awake();
         rightAxeScript = rightAxe.GetComponent<Axe>();
         leftAxeScript = leftAxe.GetComponent<Axe>();
+        abilityEContainer = transform.GetChild(4).gameObject;
     }
 
     protected override void Start()
@@ -59,6 +65,8 @@ public class Draven : Character
         base.Start();
         waitSpeed = new WaitForSeconds(3);
         waitAbilityQ = new WaitForSeconds(5.8f);
+        waitAbilityE = new WaitForSeconds(1.05f);
+        waitAbilityR = new WaitForSeconds(0.567f);
         rightAxeScript.damage = attackDamage;
         leftAxeScript.damage = attackDamage;
     }
@@ -93,14 +101,25 @@ public class Draven : Character
             PerformAbilityW();
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && !isAbilityEOnCooldown)
         {
             PerformAbilityE();
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R) && !isAbilityROnCooldown)
         {
-            PerformAbilityR();
+            if (!abilityRContainerScript.isAbilityRGoing)
+            {
+                PerformAbilityR();
+            }
+            else
+            {
+                abilityRContainerScript.isAbilityRGoing = false;
+                abilityRContainerScript.isAbilityRReturning= true;
+
+                DeactivateAbiityR();
+            }
+            
         }
     }
 
@@ -184,11 +203,13 @@ public class Draven : Character
     protected override void PerformAbilityE()
     {
         base.PerformAbilityE();
+        StartCoroutine(PlayAbilityEAnimation());
     }
 
     protected override void PerformAbilityR()
     {
-        base.PerformAbilityR();
+        //base.PerformAbilityR();
+        StartCoroutine(PlayAbilityRAnimation());
     }
 
     IEnumerator RotateLeftAxe()
@@ -243,6 +264,66 @@ public class Draven : Character
         animatorPlayer.SetFloat("attackAnimationMultiplier", attackSpeed);
     }
 
+    IEnumerator PlayAbilityEAnimation()
+    {
+        navMeshAgent.destination = transform.position;
+        crosshairInfo = cameraScript.GetMouseInfo();
+        transform.LookAt(crosshairInfo.mousePosition, Vector3.up);
+
+        abilityEContainer.GetComponent<DravenEContainer>().lerpStartPosition = transform.position;
+        Vector3 direction = Vector3.zero;
+
+        if (crosshairInfo.hitObject.CompareTag("Ground"))
+        {
+            //abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition = (crosshairInfo.mousePosition - transform.position).normalized * 6.4f;
+            direction = (crosshairInfo.mousePosition - transform.position).normalized * 6.4f;
+        }
+        else
+        {
+            if (Physics.Raycast(crosshairInfo.mousePosition, Vector3.down, out RaycastHit hit, 10f, ~LayerMask.GetMask("Enemy")))
+            {
+                //abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition = (hit.point - transform.position).normalized * 6.4f;
+                direction = (hit.point - transform.position).normalized * 6.4f;
+            }
+        }
+
+        abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition = transform.position + direction;
+
+        abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition += new Vector3(0f, 0.35f, 0f);
+        animatorPlayer.SetBool("isPerformingE", true);
+        yield return waitAbilityE;
+        animatorPlayer.SetBool("isPerformingE", false);
+    }
+
+    IEnumerator PlayAbilityRAnimation()
+    {
+        navMeshAgent.destination = transform.position;
+        crosshairInfo = cameraScript.GetMouseInfo();
+        transform.LookAt(crosshairInfo.mousePosition, Vector3.up);
+
+        if (crosshairInfo.hitObject.CompareTag("Ground"))
+        {
+            abilityRDirection = (crosshairInfo.mousePosition - transform.position).normalized;
+        }
+        else
+        {
+            if (Physics.Raycast(crosshairInfo.mousePosition, Vector3.down, out RaycastHit hit, 100f, ~LayerMask.GetMask("Enemy")))
+            {
+                abilityRDirection = (hit.point - transform.position).normalized;
+            }
+        }
+
+        abilityRContainerScript.direction = abilityRDirection;
+
+        leftAxeScript.isRotating = true;
+        rightAxeScript.isRotating = true;
+
+        animatorPlayer.SetBool("isPerformingR", true);
+        yield return waitAbilityR;
+        animatorPlayer.SetBool("isPerformingR", false);
+    }
+
+    //Animation event for auto attack
     void ThrowAxeAnimEvent()
     {
         if (target == null)
@@ -279,6 +360,49 @@ public class Draven : Character
             leftAxeScript.isThrowing = true;
         }
     }
+
+    //Animation event for Ability E
+    void ThrowAxesAnimEvent()
+    {
+        abilityEContainer.SetActive(true);
+        abilityEContainer.transform.parent = null;
+        abilityEContainer.transform.position = transform.position;
+        abilityEContainer.transform.position += new Vector3(0, 0.45f, 0);
+        abilityEContainer.GetComponent<DravenEContainer>().activationTime = Time.time;
+        abilityEContainer.GetComponent<DravenEContainer>().lerpTime = 0f;
+
+        leftAxe.transform.parent = abilityEContainer.transform;
+        leftAxe.transform.localPosition += new Vector3(0.24f, 0, 0);
+
+        rightAxe.transform.parent = abilityEContainer.transform;
+        rightAxe.transform.localPosition -= new Vector3(0.24f, 0, 0);
+
+        StartCoroutine(abilityEContainer.GetComponent<DravenEContainer>().LerpAxes());
+    }
+
+    //Animation event for Ability R
+    void AbilityRAnimEvent()
+    {
+        abilityRContainerScript.transform.SetParent(null);
+        leftAxe.transform.SetParent(abilityRContainerScript.transform);
+        rightAxe.transform.SetParent(abilityRContainerScript.transform);
+        abilityRContainerScript.gameObject.SetActive(true);
+
+        if (Physics.Raycast(leftAxe.transform.position, Vector3.down, out RaycastHit hitLeft, 10f))
+        {
+            leftAxe.transform.position = hitLeft.point;
+            leftAxe.transform.forward = hitLeft.normal;
+        }
+
+        if (Physics.Raycast(rightAxe.transform.position, Vector3.down, out RaycastHit hitRight, 10f))
+        {
+            rightAxe.transform.position = hitRight.point;
+            rightAxe.transform.forward = hitRight.normal;
+        }
+
+        abilityRContainerScript.isAbilityRGoing = true;
+    }
+
 
     public float GetAttackDamage()
     {
@@ -318,6 +442,11 @@ public class Draven : Character
             leftAxeScript.isSpinningAxeActive = false;
             leftAxeScript.damage = attackDamage;
         }
+    }
+
+    public void DeactivateAbiityR()
+    {
+        StartCoroutine(SetAbilityROnCooldown());
     }
 
     public void SetAbilityWActive()

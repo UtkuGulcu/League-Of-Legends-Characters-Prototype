@@ -11,9 +11,10 @@ public class Axe : MonoBehaviour
     [HideInInspector] public bool isThrowing;
     [HideInInspector] public bool isSpinningAxeActive;
     [HideInInspector] public bool isLerpAxeCoroutineActive;
+    [HideInInspector] public bool isRotating;
+    [HideInInspector] public bool isAbilityEActive;
     [HideInInspector] public float damage;
     [SerializeField] float speed;
-    [HideInInspector] public Vector3 direction;
     [HideInInspector] public GameObject target;
 
     #endregion
@@ -27,7 +28,6 @@ public class Axe : MonoBehaviour
 
     #region private variables
 
-    bool isRotating;
     float slerpTime;
     Vector3 startPosition;
     Vector3 middlePosition;
@@ -60,11 +60,11 @@ public class Axe : MonoBehaviour
 
     void Update()
     {
-        ThrowAxe();
+        ThrowAxeForAutoAttack();
         RotateAxe();
     }
 
-    IEnumerator LerpAxe()
+    IEnumerator LerpAxeAbilityQ()
     {
         isLerpAxeCoroutineActive = true;
         slerpTime = 0f;
@@ -104,12 +104,29 @@ public class Axe : MonoBehaviour
         isLerpAxeCoroutineActive = false;
     }
 
-    void ThrowAxe()
+    //public IEnumerator LerpAxesAbilityE()
+    //{
+    //    isAbilityEActive = true;
+
+    //    while (Time.time <= abilityEActivationTime + 1)
+    //    {
+    //        abilityELerpTime += Time.deltaTime;
+    //        dravenScript.abilityEContainer.transform.position = Vector3.Lerp(abilityELerpStartPosition, abilityELerpEndPosition, abilityELerpTime);
+    //        yield return waitForEndOfFrame;
+    //    }
+
+    //    dravenScript.abilityEContainer.SetActive(false);
+    //    dravenScript.abilityEContainer.transform.SetParent(dravenScript.gameObject.transform);
+    //    ResetAxe();
+    //    isAbilityEActive = false;
+    //}
+
+    void ThrowAxeForAutoAttack()
     {
         if (isThrowing && target.transform.CompareTag("Enemy"))
         {
-            direction = (target.transform.position - transform.position).normalized;
-            transform.Translate(direction * Time.deltaTime * speed, Space.World);
+            Vector3 direction = (target.transform.position - transform.position).normalized;
+            transform.Translate(speed * Time.deltaTime * direction, Space.World);
             isRotating = true;
         }
     }
@@ -120,9 +137,14 @@ public class Axe : MonoBehaviour
         {
             transform.Rotate(0, -2000 * Time.deltaTime, 0);
         }
+
+        if (isAbilityEActive)
+        {
+            transform.Rotate(2000 * Time.deltaTime, 0, 0);
+        }
     }
 
-    void ResetAxe()
+    public void ResetAxe()
     {
         if (transform.name == "RightAxe")
         {
@@ -147,7 +169,7 @@ public class Axe : MonoBehaviour
 
         if (dravenScript.IsMoving())
         {
-            endPosition = dravenScript.gameObject.transform.position + (dravenScript.transform.forward * 4);
+            endPosition = dravenScript.gameObject.transform.position + (dravenScript.transform.forward * 2);
         }
         else
         {
@@ -172,27 +194,8 @@ public class Axe : MonoBehaviour
             abilityQIndicatorLeft.SetActive(true);
         }
 
-        lerpAxeCoroutine = LerpAxe();
+        lerpAxeCoroutine = LerpAxeAbilityQ();
         StartCoroutine(lerpAxeCoroutine);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Enemy") && isThrowing)
-        {
-            other.GetComponent<Enemy>().TakeDamage(damage);
-            isRotating = false;
-
-            if (isSpinningAxeActive)
-            {
-                FindReturningPoint();
-            }
-            else
-            {
-                ResetAxe();
-            }
-
-        }
     }
 
     public void CatchAxe()
@@ -222,6 +225,24 @@ public class Axe : MonoBehaviour
 
             abilityQIndicatorLeft.transform.SetParent(dravenScript.gameObject.transform);
             abilityQIndicatorLeft.SetActive(false);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy") && isThrowing)
+        {
+            other.GetComponent<Enemy>().TakeDamage(damage);
+            isRotating = false;
+
+            if (isSpinningAxeActive)
+            {
+                FindReturningPoint();
+            }
+            else
+            {
+                ResetAxe();
+            }
         }
     }
 }

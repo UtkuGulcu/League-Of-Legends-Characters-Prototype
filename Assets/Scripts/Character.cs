@@ -8,12 +8,11 @@ public class Character : MonoBehaviour
 
     #region protected variables
 
-    bool isAttacking;
-    bool isOnEnemy;
     protected bool isAbilityQOnCooldown;
     protected bool isAbilityWOnCooldown;
+    protected bool isAbilityEOnCooldown;
+    protected bool isAbilityROnCooldown;
     protected WaitForSeconds waitAttack;
-    protected GameObject hitObject;
     protected GameObject target;
 
     #endregion
@@ -22,6 +21,8 @@ public class Character : MonoBehaviour
 
     protected Animator animatorPlayer;
     protected NavMeshAgent navMeshAgent;
+    protected MouseInfo crosshairInfo;
+    protected MyCamera cameraScript;
 
     #endregion
 
@@ -53,11 +54,12 @@ public class Character : MonoBehaviour
 
     bool isWalking;
     bool isWalkingToTarget;
-    MouseInfo crosshairInfo;
+    bool isAttacking;
     WaitForSeconds waitArrow;
     WaitForSeconds waitAbilityQ;
     WaitForSeconds waitAbilityW;
-    Vector3 mousePosition;
+    WaitForSeconds waitAbilityE;
+    WaitForSeconds waitAbilityR;
     IEnumerator playAttackAnimationCoroutine;
 
     #endregion
@@ -68,10 +70,12 @@ public class Character : MonoBehaviour
 
     #endregion
 
+
     protected virtual void Awake()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
         animatorPlayer = GetComponent<Animator>();
+        cameraScript = GetComponent<MyCamera>();
     }
 
     protected virtual void Start()
@@ -80,6 +84,8 @@ public class Character : MonoBehaviour
         waitAttack = new WaitForSeconds(attackSpeed);
         waitAbilityQ = new WaitForSeconds(abilityQCooldown);
         waitAbilityW = new WaitForSeconds(abilityWCooldown);
+        waitAbilityE = new WaitForSeconds(abilityECooldown);
+        waitAbilityR = new WaitForSeconds(abilityRCooldown);
         navMeshAgent.speed = movementSpeed;
     }
 
@@ -92,17 +98,41 @@ public class Character : MonoBehaviour
 
     void ReadInput()
     {
+        //If Right Mouse Button is pressed
+        if (Input.GetMouseButtonDown(1))
+        {
+            crosshairInfo = cameraScript.GetMouseInfo();
+
+            if (crosshairInfo.isOnEnemy && !isAttacking)
+            {
+                if (Vector3.Distance(transform.position, crosshairInfo.hitObject.transform.position) > attackRange)
+                {
+                    //Move towards target and then attack again
+                    Vector3 direction = (crosshairInfo.hitObject.transform.position - transform.position).normalized;
+                    Vector3 distanceToTargetPosition = direction * (Vector3.Distance(transform.position, crosshairInfo.hitObject.transform.position) - attackRange);
+                    navMeshAgent.destination = transform.position + distanceToTargetPosition;
+                    isWalkingToTarget = true;
+                }
+                else
+                {
+                    Attack();
+                }
+            }
+            else if (!crosshairInfo.isOnEnemy)
+            {
+                StopCoroutine(SpawnArrow());
+                StartCoroutine(SpawnArrow());
+            }
+        }
+
         //If Right Mouse Button is being pressed
         if (Input.GetMouseButton(1))
         {
-            crosshairInfo = GetComponent<MyCamera>().GetMouseInfo();
-            mousePosition = crosshairInfo.mousePosition;
-            transform.LookAt(mousePosition, Vector3.up);
+            crosshairInfo = cameraScript.GetMouseInfo();
+            transform.LookAt(crosshairInfo.mousePosition, Vector3.up);
             transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
-            isOnEnemy = crosshairInfo.isOnEnemy;
-            hitObject = crosshairInfo.hitObject;
 
-            if (!isOnEnemy)
+            if (!crosshairInfo.isOnEnemy)
             {
                 if (isAttacking)
                 {
@@ -113,31 +143,6 @@ public class Character : MonoBehaviour
                 }
 
                 HandleMovement();
-            }
-        }
-
-        //If Right Mouse Button is pressed
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (isOnEnemy && !isAttacking)
-            {
-                if (Vector3.Distance(transform.position, hitObject.transform.position) > attackRange)
-                {
-                    //Move towards target and then attack again
-                    Vector3 direction = (hitObject.transform.position - transform.position).normalized;
-                    Vector3 distanceToTargetPosition = direction * (Vector3.Distance(transform.position, hitObject.transform.position) - attackRange);
-                    navMeshAgent.destination = transform.position + distanceToTargetPosition;
-                    isWalkingToTarget = true;
-                }
-                else
-                {
-                    Attack();
-                }
-            }
-            else if (!isOnEnemy)
-            {
-                StopCoroutine(SpawnArrow());
-                StartCoroutine(SpawnArrow());
             }
         }
     }
@@ -156,12 +161,14 @@ public class Character : MonoBehaviour
 
     protected virtual void PerformAbilityE()
     {
-        //This Method will be filled when taking care of cooldowns and/or mana
+        //Take care of mana
+        StartCoroutine(SetAbilityEOnCooldown());
     }
 
     protected virtual void PerformAbilityR()
     {
-        //This Method will be filled when taking care of cooldowns and/or mana
+        //Take care of mana
+        StartCoroutine(SetAbilityROnCooldown());
     }
 
     IEnumerator SetAbilityQOnCooldown()
@@ -178,15 +185,29 @@ public class Character : MonoBehaviour
         isAbilityWOnCooldown = false;
     }
 
+    IEnumerator SetAbilityEOnCooldown()
+    {
+        isAbilityEOnCooldown = true;
+        yield return waitAbilityE;
+        isAbilityEOnCooldown = false;
+    }
+
+    protected IEnumerator SetAbilityROnCooldown()
+    {
+        isAbilityROnCooldown = true;
+        yield return waitAbilityR;
+        isAbilityROnCooldown = false;
+    }
+
     void HandleMovement()
     {
-        navMeshAgent.SetDestination(mousePosition);
+        navMeshAgent.SetDestination(crosshairInfo.mousePosition);
     }
 
     void Attack()
     {
         navMeshAgent.destination = transform.position;
-        target = hitObject;
+        target = crosshairInfo.hitObject;
 
         if (isRightLastAttack)
         {
@@ -258,7 +279,7 @@ public class Character : MonoBehaviour
 
     IEnumerator SpawnArrow()
     {
-        GameObject deletedArrow = Instantiate(arrow, mousePosition, Quaternion.identity);
+        GameObject deletedArrow = Instantiate(arrow, crosshairInfo.mousePosition, Quaternion.identity);
         yield return waitArrow;
         Destroy(deletedArrow);
     }
@@ -280,7 +301,7 @@ public class Character : MonoBehaviour
             }
             else
             {
-                transform.LookAt(hitObject.transform.position, Vector3.up);
+                transform.LookAt(crosshairInfo.hitObject.transform.position, Vector3.up);
                 transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
             }
         }
