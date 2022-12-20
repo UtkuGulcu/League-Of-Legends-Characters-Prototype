@@ -104,23 +104,6 @@ public class Axe : MonoBehaviour
         isLerpAxeCoroutineActive = false;
     }
 
-    //public IEnumerator LerpAxesAbilityE()
-    //{
-    //    isAbilityEActive = true;
-
-    //    while (Time.time <= abilityEActivationTime + 1)
-    //    {
-    //        abilityELerpTime += Time.deltaTime;
-    //        dravenScript.abilityEContainer.transform.position = Vector3.Lerp(abilityELerpStartPosition, abilityELerpEndPosition, abilityELerpTime);
-    //        yield return waitForEndOfFrame;
-    //    }
-
-    //    dravenScript.abilityEContainer.SetActive(false);
-    //    dravenScript.abilityEContainer.transform.SetParent(dravenScript.gameObject.transform);
-    //    ResetAxe();
-    //    isAbilityEActive = false;
-    //}
-
     void ThrowAxeForAutoAttack()
     {
         if (isThrowing && target.transform.CompareTag("Enemy"))

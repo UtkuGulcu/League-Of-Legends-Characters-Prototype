@@ -42,7 +42,7 @@ public class DravenRContainer : MonoBehaviour
 
     private void Start()
     {
-        waitReturn = new WaitForSeconds(0.5f);
+        waitReturn = new WaitForSeconds(0.52f);
     }
 
     private void Update()
@@ -71,13 +71,6 @@ public class DravenRContainer : MonoBehaviour
         if (other.CompareTag("Enemy") && isAbilityRGoing)
         {
             other.GetComponent<Enemy>().TakeDamage(175);
-
-            //if (returnAxesCoroutine == null)
-            //{
-            //    returnAxesCoroutine = ReturnAxes();
-            //    StartCoroutine(returnAxesCoroutine);
-            //}
-
             StartCoroutine(ReturnAxes());
         }
 
@@ -88,6 +81,7 @@ public class DravenRContainer : MonoBehaviour
 
         if (other.CompareTag("Draven") && isAbilityRReturning)
         {
+            isAbilityRReturning = false;
             transform.SetParent(dravenScript.transform);
             
             leftAxeScript.isRotating = false;

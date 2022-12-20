@@ -19,8 +19,6 @@ public class Draven : Character
     [SerializeField] GameObject leftAxe;
     public Transform rightHandTransform;
     public Transform leftHandTransform;
-    public GameObject abilityEContainer;
-    public DravenRContainer abilityRContainerScript;
 
     #endregion
 
@@ -49,6 +47,8 @@ public class Draven : Character
 
     Axe rightAxeScript;
     Axe leftAxeScript;
+    DravenEContainer abilityEContainerScript;
+    DravenRContainer abilityRContainerScript;
 
     #endregion
 
@@ -57,7 +57,8 @@ public class Draven : Character
         base.Awake();
         rightAxeScript = rightAxe.GetComponent<Axe>();
         leftAxeScript = leftAxe.GetComponent<Axe>();
-        abilityEContainer = transform.GetChild(4).gameObject;
+        abilityEContainerScript = transform.GetChild(4).GetComponent<DravenEContainer>();
+        abilityRContainerScript = transform.GetChild(5).GetComponent<DravenRContainer>();
     }
 
     protected override void Start()
@@ -270,26 +271,24 @@ public class Draven : Character
         crosshairInfo = cameraScript.GetMouseInfo();
         transform.LookAt(crosshairInfo.mousePosition, Vector3.up);
 
-        abilityEContainer.GetComponent<DravenEContainer>().lerpStartPosition = transform.position;
+        abilityEContainerScript.lerpStartPosition = transform.position + new Vector3(0f, 0.52f, 0f);
         Vector3 direction = Vector3.zero;
 
         if (crosshairInfo.hitObject.CompareTag("Ground"))
-        {
-            //abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition = (crosshairInfo.mousePosition - transform.position).normalized * 6.4f;
+        {            
             direction = (crosshairInfo.mousePosition - transform.position).normalized * 6.4f;
         }
         else
         {
             if (Physics.Raycast(crosshairInfo.mousePosition, Vector3.down, out RaycastHit hit, 10f, ~LayerMask.GetMask("Enemy")))
             {
-                //abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition = (hit.point - transform.position).normalized * 6.4f;
                 direction = (hit.point - transform.position).normalized * 6.4f;
             }
         }
 
-        abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition = transform.position + direction;
+        abilityEContainerScript.lerpEndPosition = transform.position + direction;
 
-        abilityEContainer.GetComponent<DravenEContainer>().lerpEndPosition += new Vector3(0f, 0.35f, 0f);
+        abilityEContainerScript.lerpEndPosition += new Vector3(0f, 0.52f, 0f);
         animatorPlayer.SetBool("isPerformingE", true);
         yield return waitAbilityE;
         animatorPlayer.SetBool("isPerformingE", false);
@@ -364,25 +363,26 @@ public class Draven : Character
     //Animation event for Ability E
     void ThrowAxesAnimEvent()
     {
-        abilityEContainer.SetActive(true);
-        abilityEContainer.transform.parent = null;
-        abilityEContainer.transform.position = transform.position;
-        abilityEContainer.transform.position += new Vector3(0, 0.45f, 0);
-        abilityEContainer.GetComponent<DravenEContainer>().activationTime = Time.time;
-        abilityEContainer.GetComponent<DravenEContainer>().lerpTime = 0f;
+        abilityEContainerScript.gameObject.SetActive(true);
+        abilityEContainerScript.transform.parent = null;
+        abilityEContainerScript.transform.position = transform.position;
+        abilityEContainerScript.transform.position += new Vector3(0, 0.45f, 0);
+        abilityEContainerScript.activationTime = Time.time;
+        abilityEContainerScript.lerpTime = 0f;
 
-        leftAxe.transform.parent = abilityEContainer.transform;
+        leftAxe.transform.parent = abilityEContainerScript.transform;
         leftAxe.transform.localPosition += new Vector3(0.24f, 0, 0);
 
-        rightAxe.transform.parent = abilityEContainer.transform;
+        rightAxe.transform.parent = abilityEContainerScript.transform;
         rightAxe.transform.localPosition -= new Vector3(0.24f, 0, 0);
 
-        StartCoroutine(abilityEContainer.GetComponent<DravenEContainer>().LerpAxes());
+        StartCoroutine(abilityEContainerScript.LerpAxes());
     }
 
     //Animation event for Ability R
     void AbilityRAnimEvent()
     {
+        //abilityRContainerScript.transform.position = new Vector3(4, 4, 8);
         abilityRContainerScript.transform.SetParent(null);
         leftAxe.transform.SetParent(abilityRContainerScript.transform);
         rightAxe.transform.SetParent(abilityRContainerScript.transform);
