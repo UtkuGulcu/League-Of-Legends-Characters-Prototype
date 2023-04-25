@@ -5,52 +5,35 @@ using UnityEngine;
 
 public class Draven : Character
 {
-
-    #region public variables
-
     public bool isRightAxeRotating { get; private set; }
     public bool isLeftAxeRotating { get; private set; }
 
-#endregion
-
-    #region public references
-
-    [SerializeField] GameObject rightAxe;
-    [SerializeField] GameObject leftAxe;
+    [SerializeField] private GameObject rightAxe;
+    [SerializeField] private GameObject leftAxe;
     public Transform rightHandTransform;
     public Transform leftHandTransform;
 
-    #endregion
+    private WaitForSeconds waitSpeed;
+    private WaitForSeconds waitAbilityQ;
+    private WaitForSeconds waitAbilityE;
+    private WaitForSeconds waitAbilityR;
+    private float extraMovementSpeed;
+    private float extraAttackSpeed;
+    private float abilityWActivationTime;
+    private float abilityWLerpTime;
+    private float abilityWLerpStart;
+    private float abilityWLerpEnd;
+    private IEnumerator changeSpeedCoroutine;
+    private IEnumerator leftAxeCoroutine;
+    private IEnumerator rightAxeCoroutine;
+    private bool isChangeSpeedCoroutineRunning;
+    private bool isAbilityWActive;
+    private Vector3 abilityRDirection;
 
-    #region private variables
-
-    WaitForSeconds waitSpeed;
-    WaitForSeconds waitAbilityQ;
-    WaitForSeconds waitAbilityE;
-    WaitForSeconds waitAbilityR;
-    float extraMovementSpeed;
-    float extraAttackSpeed;
-    float abilityWActivationTime;
-    float abilityWLerpTime;
-    float abilityWLerpStart;
-    float abilityWLerpEnd;
-    IEnumerator changeSpeedCoroutine;
-    IEnumerator leftAxeCoroutine;
-    IEnumerator rightAxeCoroutine;
-    bool isChangeSpeedCoroutineRunning;
-    bool isAbilityWActive;
-    Vector3 abilityRDirection;
-
-    #endregion
-
-    #region private references
-
-    Axe rightAxeScript;
-    Axe leftAxeScript;
-    DravenEContainer abilityEContainerScript;
-    DravenRContainer abilityRContainerScript;
-
-    #endregion
+    private Axe rightAxeScript;
+    private Axe leftAxeScript;
+    private DravenEContainer abilityEContainerScript;
+    private DravenRContainer abilityRContainerScript;
 
     protected override void Awake()
     {

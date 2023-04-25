@@ -2219,7 +2219,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4864265748698685923}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.5
   m_Height: 2.229078
@@ -2227,7 +2227,7 @@ CapsuleCollider:
   m_Center: {x: 0, y: 1.0798317, z: 0}
 --- !u!95 &5710632758571156395
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -2244,7 +2244,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &7941351244504001820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2257,6 +2258,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11f64cf3dd490ae46a8a8117fec81f35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animatorPlayer: {fileID: 5710632758571156395}
   health: 675
   attackDamage: 62
   attackRange: 3.2
@@ -2272,8 +2274,6 @@ MonoBehaviour:
   leftAxe: {fileID: 2911945210313437}
   rightHandTransform: {fileID: 6266076043982807930}
   leftHandTransform: {fileID: 1548212339359566193}
-  abilityEContainerScript: {fileID: 0}
-  abilityRContainerScript: {fileID: 1463598733}
 --- !u!114 &4864265748698685922
 MonoBehaviour:
   m_ObjectHideFlags: 0

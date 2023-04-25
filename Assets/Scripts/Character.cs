@@ -5,9 +5,6 @@ using UnityEngine.AI;
 
 public class Character : MonoBehaviour
 {
-
-    #region protected variables
-
     protected bool isAbilityQOnCooldown;
     protected bool isAbilityWOnCooldown;
     protected bool isAbilityEOnCooldown;
@@ -15,18 +12,10 @@ public class Character : MonoBehaviour
     protected WaitForSeconds waitAttack;
     protected GameObject target;
 
-    #endregion
-
-    #region protected references
-
-    protected Animator animatorPlayer;
+    [SerializeField] protected Animator animatorPlayer;
     protected NavMeshAgent navMeshAgent;
     protected MouseInfo crosshairInfo;
-    protected MyCamera cameraScript;
-
-    #endregion
-
-    #region public variables
+    protected CameraFollow cameraScript;
 
     [Header("Character Stats")]
     [SerializeField] float health;
@@ -41,47 +30,31 @@ public class Character : MonoBehaviour
 
     [HideInInspector] public bool isRightLastAttack;
 
-    #endregion
-
-    #region public references
-
     [Header("References")]
-    [SerializeField] GameObject arrow;
+    [SerializeField] private GameObject arrow;
 
-    #endregion
-
-    #region private variables
-
-    bool isWalking;
-    bool isWalkingToTarget;
-    bool isAttacking;
-    WaitForSeconds waitArrow;
-    WaitForSeconds waitAbilityQ;
-    WaitForSeconds waitAbilityW;
-    WaitForSeconds waitAbilityE;
-    WaitForSeconds waitAbilityR;
-    IEnumerator playAttackAnimationCoroutine;
-
-    #endregion
-
-    #region private references
-
-
-
-    #endregion
+    private bool isWalking;
+    private bool isWalkingToTarget;
+    private bool isAttacking;
+    private WaitForSeconds waitArrow;
+    private WaitForSeconds waitAbilityQ;
+    private WaitForSeconds waitAbilityW;
+    private WaitForSeconds waitAbilityE;
+    private WaitForSeconds waitAbilityR;
+    private IEnumerator playAttackAnimationCoroutine;
 
 
     protected virtual void Awake()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
-        animatorPlayer = GetComponent<Animator>();
-        cameraScript = GetComponent<MyCamera>();
+        //animatorPlayer = GetComponent<Animator>();
+        cameraScript = GetComponent<CameraFollow>();
     }
 
     protected virtual void Start()
     {
         waitArrow = new WaitForSeconds(0.42f);
-        waitAttack = new WaitForSeconds(attackSpeed);
+        waitAttack = new WaitForSeconds(1 / attackSpeed);
         waitAbilityQ = new WaitForSeconds(abilityQCooldown);
         waitAbilityW = new WaitForSeconds(abilityWCooldown);
         waitAbilityE = new WaitForSeconds(abilityECooldown);
@@ -149,25 +122,25 @@ public class Character : MonoBehaviour
 
     protected virtual void PerformAbilityQ()
     {
-        //This Method will be filled when taking care of cooldowns and/or mana
+        //Handle mana consumption
         StartCoroutine(SetAbilityQOnCooldown());
     }
 
     protected virtual void PerformAbilityW()
     {
-        //Take care of mana
+        //Handle mana consumption
         StartCoroutine(SetAbilityWOnCooldown());
     }
 
     protected virtual void PerformAbilityE()
     {
-        //Take care of mana
+        //Handle mana consumption
         StartCoroutine(SetAbilityEOnCooldown());
     }
 
     protected virtual void PerformAbilityR()
     {
-        //Take care of mana
+        //Handle mana consumption
         StartCoroutine(SetAbilityROnCooldown());
     }
 
@@ -261,7 +234,7 @@ public class Character : MonoBehaviour
         }
 
 
-        if (Vector3.Distance(transform.position, target.transform.position) <= attackRange)
+        if (Vector3.Distance(transform.position, target.transform.position) <= attackRange + 0.1f)
         {
             StopCoroutine(playAttackAnimationCoroutine);
             playAttackAnimationCoroutine = PlayAttackAnimation(!isRight);
